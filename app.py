@@ -1,71 +1,62 @@
 import os
-import sqlite3
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+import PyPDF2
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# This ensures the database is created in the right place on Render
-DB_PATH = os.path.join(os.path.dirname(__file__), 'physics.db')
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    # Table for formulas
-    c.execute('CREATE TABLE IF NOT EXISTS dimensions (quantity TEXT PRIMARY KEY, formula TEXT)')
-    # Table for tracking what users search
-    c.execute('CREATE TABLE IF NOT EXISTS search_logs (query TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)')
-    conn.commit()
-    conn.close()
-
-init_db()
+# This file will store all the text from your uploaded PDFs
+KNOWLEDGE_BASE = "knowledge.txt"
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/get_dimension')
-def get_dimension():
-    query = request.args.get('query', '').lower().strip()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    # Log the search
-    c.execute('INSERT INTO search_logs (query) VALUES (?)', (query,))
-    # Search for the formula
-    c.execute('SELECT formula FROM dimensions WHERE quantity=?', (query,))
-    result = c.fetchone()
-    conn.commit()
-    conn.close()
-    
-    if result:
-        return jsonify({"success": True, "formula": result[0]})
-    return jsonify({"success": False, "message": "Not found"})
-
 @app.route('/admin')
 def admin():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('SELECT query, timestamp FROM search_logs ORDER BY timestamp DESC LIMIT 20')
-    logs = c.fetchall()
-    c.execute('SELECT * FROM dimensions')
-    data = c.fetchall()
-    conn.close()
-    return render_template('admin.html', logs=logs, data=data)
+    return render_template('admin.html')
 
 @app.route('/upload', methods=['POST'])
-def upload():
-    file = request.files.get('file')
-    if file:
-        lines = file.read().decode('utf-8').splitlines()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        for line in lines:
-            if ":" in line:
-                q, f = line.split(":", 1)
-                c.execute('INSERT OR REPLACE INTO dimensions VALUES (?, ?)', (q.strip().lower(), f.strip()))
-        conn.commit()
-        conn.close()
-    return redirect(url_for('admin'))
+def upload_file():
+    if 'file' not in request.files:
+        return "No file part"
+    file = request.files['file']
+    if file and file.filename.endswith('.pdf'):
+        reader = PyPDF2.PdfReader(file)
+        text_content = ""
+        for page in reader.pages:
+            text_content += page.extract_text() + "\n"
+        
+        # Save the "memorized" text to a file
+        with open(KNOWLEDGE_BASE, "a", encoding="utf-8") as f:
+            f.write(text_content)
+        return "Book Memorized Successfully! You can now ask questions."
+    return "Please upload a valid PDF."
 
+@app.route('/get_dimension') # Keeping same route name for your JS
+def get_answer():
+    query = request.args.get('query', '').lower()
+    if not os.path.exists(KNOWLEDGE_BASE):
+        return jsonify(success=False, formula="No knowledge base found. Upload a PDF first.")
+
+    with open(KNOWLEDGE_BASE, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    # Simple logic: Find sentences that contain your keyword
+    results = []
+    for line in lines:
+        if query in line.lower():
+            results.append(line.strip())
+
+    if results:
+        # Returns the first 3 relevant lines found in the PDF
+        answer = " ".join(results[:3])
+        return jsonify(success=True, formula=answer)
+    
+    return jsonify(success=False, formula="I couldn't find that in the uploaded material.")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    
 if __name__ == '__main__':
     # Render provides a PORT environment variable
     port = int(os.environ.get("PORT", 5000))
