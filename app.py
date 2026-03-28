@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# This file will store all the text from your uploaded PDFs
+# This text file will act as the "memory" for your AI
 KNOWLEDGE_BASE = "knowledge.txt"
 
 @app.route('/')
@@ -21,44 +21,43 @@ def upload_file():
         return "No file part"
     file = request.files['file']
     if file and file.filename.endswith('.pdf'):
-        reader = PyPDF2.PdfReader(file)
-        text_content = ""
-        for page in reader.pages:
-            text_content += page.extract_text() + "\n"
-        
-        # Save the "memorized" text to a file
-        with open(KNOWLEDGE_BASE, "a", encoding="utf-8") as f:
-            f.write(text_content)
-        return "Book Memorized Successfully! You can now ask questions."
-    return "Please upload a valid PDF."
+        try:
+            reader = PyPDF2.PdfReader(file)
+            text_content = ""
+            for page in reader.pages:
+                text_content += page.extract_text() + "\n"
+            
+            # This saves the PDF text into your knowledge base
+            with open(KNOWLEDGE_BASE, "a", encoding="utf-8") as f:
+                f.write(text_content)
+            return "PDF Memorized! You can now ask questions on the home page."
+        except Exception as e:
+            return f"Error processing PDF: {str(e)}"
+    return "Please upload a valid PDF file."
 
-@app.route('/get_dimension') # Keeping same route name for your JS
+@app.route('/get_dimension')
 def get_answer():
     query = request.args.get('query', '').lower()
     if not os.path.exists(KNOWLEDGE_BASE):
-        return jsonify(success=False, formula="No knowledge base found. Upload a PDF first.")
+        return jsonify(success=False, formula="I haven't learned anything yet. Upload a PDF in Admin.")
 
     with open(KNOWLEDGE_BASE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+        content = f.read()
 
-    # Simple logic: Find sentences that contain your keyword
-    results = []
-    for line in lines:
-        if query in line.lower():
-            results.append(line.strip())
+    # Search logic: find the paragraph containing your question
+    # This looks for the word (like 'pressure') and takes the surrounding text
+    import re
+    # This finds the sentence containing your keyword
+    sentences = re.split(r'(?<=[.!?]) +', content)
+    relevant_sentences = [s for s in sentences if query in s.lower()]
 
-    if results:
-        # Returns the first 3 relevant lines found in the PDF
-        answer = " ".join(results[:3])
+    if relevant_sentences:
+        # Show the first 2 sentences found
+        answer = " ".join(relevant_sentences[:2])
         return jsonify(success=True, formula=answer)
     
-    return jsonify(success=False, formula="I couldn't find that in the uploaded material.")
+    return jsonify(success=False, formula="I couldn't find information about that in my memory.")
 
 if __name__ == "__main__":
     app.run(debug=True)
     
-if __name__ == '__main__':
-    # Render provides a PORT environment variable
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-  
