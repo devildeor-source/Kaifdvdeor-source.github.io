@@ -1,1 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Physics AI - Admin</title>
+    <style>
+        body { background: #000; color: #00f7ff; font-family: sans-serif; padding: 20px; }
+        .box { border: 1px solid #00f7ff; padding: 20px; border-radius: 10px; max-width: 400px; }
+        input, button { margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <div class="box">
+        <h3>Upload Dimensions (.txt)</h3>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".txt">
+            <button type="submit">Upload & Sync</button>
+        </form>
+    </div>
+    <br>
+    <a href="/" style="color: white;">← Back to Search</a>
+</body>
+</html>
 
