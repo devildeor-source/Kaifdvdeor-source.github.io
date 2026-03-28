@@ -2,24 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Physics AI - Admin</title>
     <style>
-        body { background: #000; color: #00f7ff; font-family: sans-serif; padding: 20px; }
-        .box { border: 1px solid #00f7ff; padding: 20px; border-radius: 10px; max-width: 400px; }
-        input, button { margin-top: 10px; display: block; }
+        body { background: #000; color: #00f7ff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { border: 2px solid #00f7ff; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px #00f7ff; width: 90%; max-width: 400px; text-align: center; }
+        input[type="file"] { margin: 20px 0; color: white; }
+        button { background: #00f7ff; color: #000; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+        a { color: #fff; text-decoration: none; margin-top: 20px; font-size: 0.9rem; opacity: 0.7; }
     </style>
 </head>
 <body>
-    <h1>Admin Panel</h1>
     <div class="box">
-        <h3>Upload Dimensions (.txt)</h3>
+        <h2>Admin Panel</h2>
+        <p>Upload NCERT / HC Verma PDF</p>
         <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".txt">
-            <button type="submit">Upload & Sync</button>
+            <input type="file" name="file" accept=".pdf" required>
+            <button type="submit">Upload & Memorize</button>
         </form>
     </div>
-    <br>
-    <a href="/" style="color: white;">← Back to Search</a>
+    <a href="/">← Back to Search</a>
 </body>
 </html>
-
