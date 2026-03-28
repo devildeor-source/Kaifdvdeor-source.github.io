@@ -3,16 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics Dimension AI</title>
+    <title>Physics AI - Knowledge Base</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Small internal fix to ensure the text looks clean on the surface */
+        #response-container {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-bottom: 50px;
+        }
+        .loading {
+            color: #00f7ff;
+            font-style: italic;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
 
     <h1 id="hello">Hello</h1>
 
     <div class="searchContainer">
-        <input type="text" id="message" placeholder="Search a physical quantity (e.g. Force)..." autocomplete="off">
-        <button onclick="handleSend()">
+        <input type="text" id="message" placeholder="Ask anything from your PDFs..." autocomplete="off">
+        
+        <button onclick="handleSend()" id="sendBtn">
             <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -20,7 +40,14 @@
         </button>
     </div>
 
+    <div id="response-container" style="display: none; margin-top: 30px; color: white; line-height: 1.6; max-width: 600px; text-align: left; padding: 20px; border-left: 3px solid #00f7ff; background: rgba(255,255,255,0.07); border-radius: 0 10px 10px 0; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+        <a href="/admin" style="color: #00f7ff; text-decoration: none; font-size: 0.8rem; opacity: 0.5;">Admin Panel</a>
+    </div>
+
 </body>
 </html>
-
